@@ -7,26 +7,43 @@ license = "MIT"
 readme = "README.md"
 
 [tool.poetry.group.dev.dependencies]
-isort = "^5.12.0"
 black = "^23.3.0"
 ruff = "^0.0.269"
 
 [tool.ruff]
 select = [
-    "E",
-    "W",
     "F",
     "I",
+    "W",
     "C",
     "B",
-    "N"
+    "N",
+    "UP",
+    "ASYNC",
+    "S",
+    "BLE",
+    "B",
+    "A",
+    "C4",
+    "DTZ",
+    "EM",
+    "FA100",
+    "ICN",
+    "G",
+    "INP",
+    "PIE",
+    "PT",
+    "RET",
+    "SIM",
+    "PTH",
+    "PL",
+    "RUF"
 ]
 ignore = [
     "E501",
+    "RET502",
+    "F401", # caught by pyright
 ]
-
-[tool.isort]
-profile = "black"
 
 [tool.pyright]
 strict = true
