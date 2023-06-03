@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 from app import config
@@ -9,6 +8,6 @@ def make_user_dir(user_id: int) -> Path:
         raise Exception
     user_path = config.STORAGE_LOCAL_BASE_PATH / str(user_id)
 
-    os.mkdir(user_path)
+    Path.mkdir(user_path)
 
     return user_path

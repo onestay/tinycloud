@@ -1,9 +1,8 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
 
-from ..dependencies import get_db, get_user
+from ..dependencies import get_user
 from ..models.users import User, UserSchema
 
 router = APIRouter()

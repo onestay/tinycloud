@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -19,15 +19,15 @@ if TYPE_CHECKING:
 class User(Base):
     __tablename__ = "users"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(unique=True, index=True)
     name: Mapped[str]
     password: Mapped[str]
-    profile_picture: Mapped[Optional[str]]
+    profile_picture: Mapped[str | None]
     is_active: Mapped[bool] = mapped_column(default=True)
     sessions: Mapped[list[UserSession]] = relationship(back_populates="user")
     files: Mapped[list[File]] = relationship(back_populates="owner")
-    base_dir: Mapped[Optional[UserLocalStorageBaseDir]] = relationship(
+    base_dir: Mapped[UserLocalStorageBaseDir | None] = relationship(
         back_populates="user"
     )
 
@@ -35,12 +35,12 @@ class User(Base):
     def create(
         cls,
         session: Session,
-        email: str,
-        name: str,
-        password: str,
+        user_in: UserInSchema,
         create_local_storage: bool = True,
     ):
-        db_user = User(email=email, name=name, password=password)
+        db_user = User(
+            email=user_in.email, name=user_in.name, password=user_in.password
+        )
         session.add(db_user)
         session.commit()
         session.refresh(db_user)
@@ -51,8 +51,8 @@ class User(Base):
         return db_user
 
     @classmethod
-    def get_by_id(cls, session: Session, id: int) -> User | None:
-        stmt = select(cls).where(cls.id == id)
+    def get_by_id(cls, session: Session, user_id: int) -> User | None:
+        stmt = select(cls).where(cls.user_id == user_id)
 
         return session.scalar(stmt)
 
@@ -65,15 +65,15 @@ class User(Base):
 
 class UserLocalStorageBaseDir(Base):
     __tablename__ = "user_storage_base_dirs"
-    id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    local_storage_id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.user_id"))
     user: Mapped[User] = relationship(back_populates="base_dir")
     path: Mapped[str] = mapped_column(index=True)
 
     @classmethod
     def create(cls, session: Session, user: User):
-        path = make_user_dir(user.id)
-        base_dir_db = UserLocalStorageBaseDir(user_id=user.id, path=str(path))
+        path = make_user_dir(user.user_id)
+        base_dir_db = UserLocalStorageBaseDir(user_id=user.user_id, path=str(path))
         session.add(base_dir_db)
         session.commit()
 
@@ -88,7 +88,7 @@ class UserInSchema(UserBaseSchema):
 
 
 class UserSchema(UserBaseSchema):
-    id: int
+    user_id: int
     email: str
     name: str
     profile_picture: str | None

@@ -9,6 +9,7 @@ readme = "README.md"
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"
 ruff = "^0.0.269"
+pre-commit = "^3.3.2"
 
 [tool.ruff]
 select = [
@@ -44,6 +45,8 @@ ignore = [
     "RET502",
     "F401", # caught by pyright
 ]
+
+exclude = ["alembic"]
 
 [tool.pyright]
 strict = true

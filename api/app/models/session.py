@@ -20,10 +20,10 @@ TOKEN_BYTES = 32
 class UserSession(Base):
     __tablename__ = "sessions"
 
-    user_id = mapped_column(ForeignKey("users.id"))
+    user_id = mapped_column(ForeignKey("users.user_id"))
     token: Mapped[str] = mapped_column(primary_key=True)
     expires: Mapped[datetime] = mapped_column()
-    user: Mapped["User"] = relationship(back_populates="sessions")
+    user: Mapped[User] = relationship(back_populates="sessions")
 
     @classmethod
     def create(
@@ -44,12 +44,12 @@ class UserSession(Base):
         stmt = select(cls).where(cls.token == token)
 
         user_session = session.scalar(stmt)
-        if user_session is not None and not user_session.expires.replace(
-            tzinfo=timezone.utc
-        ) < datetime.now(tz=timezone.utc):
+        if user_session is not None and not user_session.expires < datetime.now(
+            tz=timezone.utc
+        ):
             return user_session
-        else:
-            return None
+
+        return None
 
     @classmethod
     def get_user_by_session(cls, session: Session, token: str) -> User | None:

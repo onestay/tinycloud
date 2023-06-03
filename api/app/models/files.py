@@ -1,14 +1,14 @@
 from __future__ import annotations
 
+import secrets
 from datetime import datetime
 from enum import Enum
-from random import random
 
 from pydantic import BaseModel
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, Session, mapped_column, relationship
 from sqlalchemy.sql.expression import text
-from sqlalchemy.types import TIMESTAMP, Integer
+from sqlalchemy.types import TIMESTAMP
 
 from app.models.base import Base
 from app.models.users import User
@@ -21,11 +21,11 @@ class StorageBackend(Enum):
 class File(Base):
     __tablename__ = "files"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    file_id: Mapped[int] = mapped_column(primary_key=True)
     token: Mapped[str]
     name: Mapped[str]
-    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
-    owner: Mapped["User"] = relationship(back_populates="files")
+    owner_id: Mapped[int] = mapped_column(ForeignKey("users.user_id"))
+    owner: Mapped[User] = relationship(back_populates="files")
     backend: Mapped[StorageBackend]
     size: Mapped[int]
     created: Mapped[datetime] = mapped_column(
@@ -39,11 +39,11 @@ class File(Base):
 
     @classmethod
     def create(cls, session: Session, file_in: FileInSchema, user: User) -> File:
-        token = "abcd"
+        token = secrets.token_hex(32)
         file = File(
             token=token,
             name=file_in.name,
-            owner_id=user.id,
+            owner_id=user.user_id,
             size=file_in.size,
             is_dir=file_in.is_dir,
             backend=StorageBackend.Local,
@@ -67,7 +67,7 @@ class FileInSchema(FileBaseSchema):
 
 
 class FileSchema(FileBaseSchema):
-    id: int
+    file_id: int
     token: str
     name: str
     backend: StorageBackend
